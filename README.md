@@ -14,6 +14,51 @@
 
 ---
 
+## 快速导航
+
+### 目录入口
+
+- 文档总览：[docs](./docs)
+- 合约实践：[practice/web3-hardhat-demo](./practice/web3-hardhat-demo)
+- Java 读链实践：[practice/web3j-demo](./practice/web3j-demo)
+- 系统设计：[design](./design)
+- 流程图：[diagrams](./diagrams)
+- 迭代计划：[roadmap](./roadmap)
+
+### 基础认知
+
+- Day01：账户与钱包： [文档](./docs/day01-accounts-and-wallets.md)
+- Day02：交易、Gas、Nonce： [文档](./docs/day02-transactions-gas-nonce.md)
+- Day03：EVM、存储与事件日志： [文档](./docs/day03-evm-storage-logs.md) | [交易生命周期图](./diagrams/tx-lifecycle.md)
+
+### 合约与工程化
+
+- Day04：Solidity 基础语法： [文档](./docs/day04-solidity-basics.md) | [Counter 合约](./practice/web3-hardhat-demo/contracts/Counter.sol)
+- Day05：ERC-20、ABI、事件： [文档](./docs/day05-erc20-abi-events.md) | [ERC-20 合约](./practice/web3-hardhat-demo/contracts/Day8SimpleToken.sol)
+- Day06：Hardhat 工程化流程： [文档](./docs/day06-hardhat-workflow.md) | [Hardhat 工程](./practice/web3-hardhat-demo) | [测试代码](./practice/web3-hardhat-demo/test/Counter.ts)
+
+### Java 接链与监听
+
+- Day07：Java + web3j 读链： [文档](./docs/day07-java-web3j-rpc.md) | [代码](./practice/web3j-demo/src/main/java/com/web3/demo/Day7Web3Runner.java)
+- Day08：合约调用与日志解码： [文档](./docs/day08-contract-calls-and-log-decoding.md) | [监听代码](./practice/web3j-demo/src/main/java/com/web3/demo/day8) | [建表 SQL](./practice/web3j-demo/src/main/resources/sql/day8_listener_schema.sql)
+
+### 资金系统设计
+
+- Day09：充值监听链路： [文档](./docs/day09-deposit-listener.md) | [流程图](./diagrams/deposit-flow.md)
+- Day10：提现链路： [文档](./docs/day10-withdrawal-flow.md) | [流程图](./diagrams/withdraw-flow.md)
+- Day11：钱包后端架构： [文档](./docs/day11-wallet-backend-architecture.md) | [架构图](./diagrams/wallet-backend-architecture.md) | [模块设计](./design/wallet-backend-module-design.md)
+- Day12：最小项目设计： [文档](./docs/day12-wallet-backend-project-design.md) | [表设计](./design/wallet-backend-schema.md) | [API 清单](./design/wallet-backend-api-list.md)
+
+### 面试与项目表达
+
+- 项目亮点与问答： [文档](./design/interview-highlights.md)
+- 12 周推进计划： [文档](./roadmap/12-week-plan.md)
+- 后续迭代清单： [文档](./roadmap/next-steps.md)
+
+> 如果你是第一次打开这个仓库，建议从 `Day07 / Day09 / Day10 / Day11` 开始看，这几部分最能快速体现 Web3 后端的工程价值。
+
+---
+
 ## 项目概览
 
 当前仓库已经覆盖以下主线内容：
@@ -179,4 +224,3 @@
 2. 保留最小但可运行的实践样例
 3. 逐步沉淀成一个可扩展的钱包后端项目
 4. 支撑项目展示、技术复盘和面试表达
-
