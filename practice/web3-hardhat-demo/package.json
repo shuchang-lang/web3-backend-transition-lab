@@ -1,0 +1,24 @@
+{
+  "name": "web3-hardhat-demo",
+  "version": "1.0.0",
+  "description": "最小 Hardhat 工程示例，覆盖 Counter、ERC-20、本地链部署与转账联调。",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "node": "hardhat node",
+    "day8:deploy-token": "hardhat run ./scripts/day8-deploy-token.ts --network localhost",
+    "day8:transfer-token": "hardhat run ./scripts/day8-transfer-token.ts --network localhost",
+    "test": "hardhat test"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.1.1",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.3",
+    "@types/node": "^22.19.15",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.3.0",
+    "typescript": "~5.8.0",
+    "viem": "^2.47.6"
+  },
+  "type": "module"
+}
