@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: web3-wallet-backend-demo
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:web3_wallet_demo}?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+wallet:
+  defaults:
+    chain: ETH_SEPOLIA
+    token-symbol: USDT
+  web3:
+    rpc-url: ${WEB3_RPC_URL:}
+    deposit-token-contract: ${WEB3_DEPOSIT_TOKEN_CONTRACT:}
+    scan-start-block: ${WEB3_SCAN_START_BLOCK:0}
+    scan-step: ${WEB3_SCAN_STEP:200}
+    token-decimals: ${WEB3_TOKEN_DECIMALS:6}
+    confirmations-threshold: ${WEB3_CONFIRMATIONS_THRESHOLD:6}
+    withdraw-hot-wallet-private-key: ${WEB3_WITHDRAW_HOT_WALLET_PRIVATE_KEY:}
+    withdraw-chain-id: ${WEB3_WITHDRAW_CHAIN_ID:11155111}
+    withdraw-gas-limit: ${WEB3_WITHDRAW_GAS_LIMIT:120000}
+    withdraw-broadcast-max-retry-count: ${WEB3_WITHDRAW_BROADCAST_MAX_RETRY_COUNT:3}
+    withdraw-receipt-timeout-minutes: ${WEB3_WITHDRAW_RECEIPT_TIMEOUT_MINUTES:10}
+    withdraw-receipt-max-timeout-retry-count: ${WEB3_WITHDRAW_RECEIPT_MAX_TIMEOUT_RETRY_COUNT:2}

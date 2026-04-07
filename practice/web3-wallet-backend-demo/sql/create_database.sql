@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS web3_wallet_demo
+    DEFAULT CHARACTER SET utf8mb4
+    DEFAULT COLLATE utf8mb4_unicode_ci;

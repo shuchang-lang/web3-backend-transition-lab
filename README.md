@@ -1,226 +1,235 @@
 # Web3 Backend Transition Lab
 
-一个聚焦 **Web3 后端工程实践、链上交互、钱包系统设计与资金链路建模** 的仓库。
+面向 `8 年 Java 后端工程师` 的 Web3 后端转型实验室。
 
-本仓库围绕 EVM（以太坊虚拟机）生态下的后端能力建设展开，重点覆盖：
+这个仓库不是单纯的概念笔记，也不是只放几个零散 demo，而是围绕真实求职目标持续推进的一套工程化项目：
 
-- `wallet backend（钱包后端）`
-- `exchange backend（交易所后端）`
-- `custody（托管）`
-- `payments（支付 / 清结算）`
-- `chain-data/indexer（链上数据 / 索引服务）`
+- `钱包后端（wallet backend）`
+- `交易所后端（exchange backend）`
+- `链上数据后端（chain-data backend）`
 
-仓库内容由 **文档、可运行示例、系统设计** 三部分组成，目标是沉淀一套可复用、可扩展、可展示的 Web3 后端工程实践基础。
+当前主项目是：
+
+- [practice/web3-wallet-backend-demo](./practice/web3-wallet-backend-demo)
+
+它已经从 Day13 的项目骨架，推进到 `Day27：自动对账任务第一版`，并且当前 `mvn test` 已通过 `58` 个测试。
+
+---
+
+## 仓库目标
+
+这个仓库想解决的不是“会不会写 Solidity”，而是下面这些更接近后端岗位面试和真实工作的能力：
+
+1. 能不能把链上概念翻译成后端系统设计。
+2. 能不能把充值、提现、账务、补偿、对账、任务治理串成完整链路。
+3. 能不能做出一个可运行、可展示、可解释的 Web3 后端项目。
+4. 能不能把 Java 后端经验自然迁移到 Web3 语境里。
 
 ---
 
 ## 快速导航
 
-### 目录入口
+### 文档与计划
 
-- 文档总览：[docs](./docs)
-- 合约实践：[practice/web3-hardhat-demo](./practice/web3-hardhat-demo)
-- Java 读链实践：[practice/web3j-demo](./practice/web3j-demo)
-- 系统设计：[design](./design)
-- 流程图：[diagrams](./diagrams)
-- 迭代计划：[roadmap](./roadmap)
+- [docs](./docs)
+- [roadmap](./roadmap)
+- [design](./design)
+- [diagrams](./diagrams)
 
-### 基础认知
+### 可运行示例
 
-- Day01：账户与钱包： [文档](./docs/day01-accounts-and-wallets.md)
-- Day02：交易、Gas、Nonce： [文档](./docs/day02-transactions-gas-nonce.md)
-- Day03：EVM、存储与事件日志： [文档](./docs/day03-evm-storage-logs.md) | [交易生命周期图](./diagrams/tx-lifecycle.md)
+- [practice/web3-wallet-backend-demo](./practice/web3-wallet-backend-demo)
+- [practice/web3j-demo](./practice/web3j-demo)
+- [practice/web3-hardhat-demo](./practice/web3-hardhat-demo)
 
-### 合约与工程化
+### 重点入口
 
-- Day04：Solidity 基础语法： [文档](./docs/day04-solidity-basics.md) | [Counter 合约](./practice/web3-hardhat-demo/contracts/Counter.sol)
-- Day05：ERC-20、ABI、事件： [文档](./docs/day05-erc20-abi-events.md) | [ERC-20 合约](./practice/web3-hardhat-demo/contracts/Day8SimpleToken.sol)
-- Day06：Hardhat 工程化流程： [文档](./docs/day06-hardhat-workflow.md) | [Hardhat 工程](./practice/web3-hardhat-demo) | [测试代码](./practice/web3-hardhat-demo/test/Counter.ts)
-
-### Java 接链与监听
-
-- Day07：Java + web3j 读链： [文档](./docs/day07-java-web3j-rpc.md) | [代码](./practice/web3j-demo/src/main/java/com/web3/demo/Day7Web3Runner.java)
-- Day08：合约调用与日志解码： [文档](./docs/day08-contract-calls-and-log-decoding.md) | [监听代码](./practice/web3j-demo/src/main/java/com/web3/demo/day8) | [建表 SQL](./practice/web3j-demo/src/main/resources/sql/day8_listener_schema.sql)
-
-### 资金系统设计
-
-- Day09：充值监听链路： [文档](./docs/day09-deposit-listener.md) | [流程图](./diagrams/deposit-flow.md)
-- Day10：提现链路： [文档](./docs/day10-withdrawal-flow.md) | [流程图](./diagrams/withdraw-flow.md)
-- Day11：钱包后端架构： [文档](./docs/day11-wallet-backend-architecture.md) | [架构图](./diagrams/wallet-backend-architecture.md) | [模块设计](./design/wallet-backend-module-design.md)
-- Day12：最小项目设计： [文档](./docs/day12-wallet-backend-project-design.md) | [表设计](./design/wallet-backend-schema.md) | [API 清单](./design/wallet-backend-api-list.md)
-
-### 面试与项目表达
-
-- 项目亮点与问答： [文档](./design/interview-highlights.md)
-- 12 周推进计划： [文档](./roadmap/12-week-plan.md)
-- 后续迭代清单： [文档](./roadmap/next-steps.md)
-
-> 如果你是第一次打开这个仓库，建议从 `Day07 / Day09 / Day10 / Day11` 开始看，这几部分最能快速体现 Web3 后端的工程价值。
+- [Day13 项目开工总结](./docs/day13-project-kickoff.md)
+- [Day21 手动补扫与最小对账第一版](./docs/day21-deposit-rescan-and-account-reconcile.md)
+- [Day24 提现回执超时巡检](./docs/day24-withdraw-receipt-timeout-and-exception-governance.md)
+- [Day25 nonce 锁与串行广播](./docs/day25-nonce-lock-and-serialized-broadcast.md)
+- [Day26 任务幂等、重试上限与失败分层](./docs/day26-task-idempotency-retry-and-failure-tiering.md)
+- [Day27 自动对账任务第一版](./docs/day27-automatic-account-reconcile-task.md)
+- [Day22-Day30 继续推进计划](./roadmap/day22-day30-plan.md)
 
 ---
 
-## 项目概览
+## 学习路线
 
-当前仓库已经覆盖以下主线内容：
+### Day01-Day03：链上基础认知
 
-1. `account（账户）`、`wallet（钱包）`、`EOA（外部账户）`、`contract account（合约账户）`
-2. `transaction（交易）`、`gas（链上执行消耗）`、`nonce（交易序号）`
-3. `EVM`、`receipt（交易回执）`、`event log（事件日志）`
-4. `ERC-20（同质化代币标准）`、`ABI（合约接口描述）`
-5. `Solidity（智能合约语言）` 与 `Hardhat（以太坊开发框架）`
-6. `web3j（Java 链上交互库）` 与 `RPC（节点远程接口）`
-7. `deposit listener（充值监听）`、`withdrawal flow（提现链路）`
-8. `wallet backend（钱包后端）` 的模块划分、账本模型与项目设计
+- [Day01 账户与钱包](./docs/day01-accounts-and-wallets.md)
+- [Day02 交易、Gas、Nonce](./docs/day02-transactions-gas-nonce.md)
+- [Day03 EVM、存储与日志](./docs/day03-evm-storage-logs.md)
 
----
+### Day04-Day08：合约与 Java 读链
 
-## 当前能力覆盖
+- [Day04 Solidity 基础](./docs/day04-solidity-basics.md)
+- [Day05 ERC-20、ABI、事件](./docs/day05-erc20-abi-events.md)
+- [Day06 Hardhat 工程化流程](./docs/day06-hardhat-workflow.md)
+- [Day07 Java + web3j 读链](./docs/day07-java-web3j-rpc.md)
+- [Day08 合约调用与日志解码](./docs/day08-contract-calls-and-log-decoding.md)
 
-### 1. 链上基础认知
+### Day09-Day12：钱包后端设计
 
-- 理解账户模型、交易结构、Gas 模型和 Nonce 顺序约束
-- 理解 EVM 执行结果、回执和事件日志
-- 能区分原生币转账与 ERC-20 转账的数据结构差异
+- [Day09 充值监听链路](./docs/day09-deposit-listener.md)
+- [Day10 提现链路](./docs/day10-withdrawal-flow.md)
+- [Day11 钱包后端架构](./docs/day11-wallet-backend-architecture.md)
+- [Day12 最小项目设计](./docs/day12-wallet-backend-project-design.md)
 
-### 2. 合约与工程化开发
+### Day13-Day20：项目落地第一阶段
 
-- 基于 Solidity 实现最小合约示例
-- 使用 Hardhat 完成 `compile（编译）`、`test（测试）`、`deploy（部署）`
-- 理解 ABI、事件签名、日志结构和本地链调试方式
+- [Day13 进入实现阶段前总结](./docs/day13-project-kickoff.md)
+- [Day14 实现阶段学习计划](./docs/day14-implementation-study-plan.md)
+- [Day15 ERC-20 充值扫描第一版](./docs/day15-erc20-deposit-scan-first-pass.md)
+- [Day16 确认数推进与正式入账](./docs/day16-deposit-confirmation-and-credit.md)
+- [Day17 提现申请与冻结](./docs/day17-withdraw-apply-and-freeze.md)
+- [Day18 提现审核与解冻回退](./docs/day18-withdraw-review-and-unfreeze.md)
+- [Day19 提现广播与回执跟踪](./docs/day19-withdraw-broadcast-and-receipt-tracking.md)
+- [Day20 提现 nonce 管理与广播重试](./docs/day20-withdraw-nonce-and-retry.md)
 
-### 3. Java 后端接链
+### Day21-Day27：项目治理能力增强
 
-- 使用 web3j 连接本地节点 / RPC 节点
-- 查询最新区块、地址余额、交易回执、日志内容
-- 理解 `eth_call（只读调用）` 与发交易的差异
-
-### 4. 资金系统设计
-
-- 理解 ERC-20 充值监听完整链路
-- 理解提现申请、冻结、审核、广播、回执跟踪流程
-- 理解内部账本、资金流水、幂等、对账与补偿在钱包后端中的作用
-
----
-
-## 仓库结构
-
-### `docs/`
-
-按主题整理的学习与总结文档，覆盖 Day 1 到 Day 12 的核心内容，重点包括：
-
-- 概念理解
-- 后端视角映射
-- 常见误区
-- 阶段性结论
-
-### `practice/`
-
-可运行的最小实践代码：
-
-- `practice/web3-hardhat-demo`：Solidity + Hardhat 示例
-- `practice/web3j-demo`：Java + web3j 读链示例
-
-### `design/`
-
-偏系统设计与项目规划的文档，包括：
-
-- 钱包后端模块设计
-- 数据表设计
-- API 清单
-- 面试高频表达与项目亮点
-
-### `diagrams/`
-
-使用 Mermaid 描述的流程图和结构图，包括：
-
-- 交易生命周期
-- 充值链路
-- 提现链路
-- 钱包后端架构
-
-### `roadmap/`
-
-后续工程迭代计划与阶段推进清单。
+- [Day21 手动补扫与最小资产对账](./docs/day21-deposit-rescan-and-account-reconcile.md)
+- [Day22 充值链路 reorg 风险识别](./docs/day22-deposit-reorg-detection.md)
+- [Day23 充值补偿与冲正](./docs/day23-deposit-compensation-and-reversal.md)
+- [Day24 提现回执超时巡检与异常治理](./docs/day24-withdraw-receipt-timeout-and-exception-governance.md)
+- [Day25 nonce 锁与串行广播](./docs/day25-nonce-lock-and-serialized-broadcast.md)
+- [Day26 任务幂等、重试上限与失败分层](./docs/day26-task-idempotency-retry-and-failure-tiering.md)
+- [Day27 自动对账任务第一版](./docs/day27-automatic-account-reconcile-task.md)
 
 ---
 
-## 技术栈
+## 当前项目覆盖能力
+
+到 Day27 为止，主项目已经覆盖：
+
+1. ERC-20 `Transfer event` 扫描、候选充值识别、确认数推进、正式入账。
+2. 提现申请、余额冻结、审核通过、审核拒绝、链上广播、回执同步。
+3. 热钱包 `nonce` 预留、广播失败重试、单 JVM 串行广播保护。
+4. 手动补扫、单用户最小资产对账、异常充值 `reorg` 风险识别。
+5. 异常充值补偿、冲正流水、`REORG_COMPENSATED` 终态推进。
+6. 提现回执超时巡检、`receiptCheckRetryCount` 治理计数、`MANUAL_HANDLE_REQUIRED` 人工处理边界。
+7. 提现广播失败治理：
+   - `broadcastRetryCount`
+   - `RETRYABLE / MANUAL_HANDLE_REQUIRED` 失败分层
+   - 最大自动重试上限 `withdrawBroadcastMaxRetryCount`
+8. 对外订单查询已可看到治理计数，方便后台排障和项目展示。
+9. 自动对账任务、对账结果落库、按用户最近批次 / 按任务批次回查历史快照。
+
+---
+
+## 当前主项目
+
+`practice/web3-wallet-backend-demo` 是当前最核心的展示项目，技术栈固定为：
 
 - `Java 17`
 - `Spring Boot`
-- `Maven`
-- `web3j`
-- `Solidity`
-- `Hardhat`
-- `TypeScript`
+- `MyBatis-Plus`
 - `MySQL`
-- `Redis（规划中）`
+- `SpringDoc`
+- `Lombok @Data`
+- `web3j`
+
+这部分严格按真实后端风格推进：
+
+- 不用内存数据库，直接使用 MySQL
+- 实体字段全部保留中文 Javadoc
+- 对外接口使用 Javadoc + SpringDoc 零入侵生成文档
+- Web3 关键调用补中文注释，强调业务规则和治理边界
 
 ---
 
 ## 当前进度
 
-- [x] 基础概念文档整理
-- [x] Hardhat 最小工程实践
-- [x] Java + web3j 最小读链实践
-- [x] 钱包后端高层设计
-- [x] 充值与提现链路文档化
-- [ ] 钱包后端 Spring Boot 项目骨架
-- [ ] ERC-20 充值监听实现
-- [ ] 提现申请、审核与状态流转实现
-- [ ] 内部账本与资金流水实现
-- [ ] 对账、补偿与监控实现
+- [x] Web3 基础认知与 Java 读链
+- [x] 钱包后端项目设计与最小 API 方案
+- [x] Spring Boot + MyBatis-Plus + MySQL 工程骨架
+- [x] 充值扫描、确认数推进、正式入账
+- [x] 提现申请、审核、广播、回执同步
+- [x] 手动补扫与单用户最小资产对账
+- [x] 充值 reorg 风险识别、补偿与冲正
+- [x] 提现回执超时巡检与异常订单治理
+- [x] 热钱包 nonce 锁与串行广播
+- [x] 任务幂等、重试上限与失败分层第一版
+- [x] 自动对账任务第一版
+- [ ] 审计日志、监控指标与告警
+- [ ] GitHub 展示与面试表达强化
 
 ---
 
-## 重点设计主题
+## 为什么这个仓库适合求职展示
 
-当前仓库重点关注以下后端问题：
+这个仓库比较适合拿去展示，是因为它强调的不是“纯概念”而是“可解释的工程过程”：
 
-- 如何稳定消费链上 `event log（事件日志）`
-- 如何正确处理 `confirmation（确认数）` 与 `reorg（链重组）`
-- 如何设计充值监听与提现跟踪链路
-- 如何构建统一的内部账本模型
-- 如何通过幂等、状态机、补偿和审计保证账实一致
+1. 每一天都有文档、代码、测试或 README 同步产出。
+2. 不是只做 happy path，而是逐步补齐 `reorg`、补偿、超时治理、任务治理。
+3. 很多设计点都能直接翻译成面试表述，例如：
+   - 幂等
+   - 状态机
+   - 补偿
+   - 对账
+   - 审计
+   - 定时任务治理
 
 ---
 
 ## 推荐阅读顺序
 
-1. `docs/`：建立概念基础
-2. `practice/`：理解最小可运行示例
-3. `design/`：把链上概念串成后端系统
-4. `diagrams/`：快速建立全局链路认知
-5. `roadmap/`：查看后续工程实现方向
+如果你是第一次打开这个仓库，推荐这样看：
 
-如果重点用于面试准备，建议优先看：
-
-- `design/interview-highlights.md`
-- `design/wallet-backend-module-design.md`
-- `design/wallet-backend-schema.md`
+1. 先看 [Day07](./docs/day07-java-web3j-rpc.md) / [Day09](./docs/day09-deposit-listener.md) / [Day10](./docs/day10-withdrawal-flow.md) / [Day11](./docs/day11-wallet-backend-architecture.md)，快速建立 Web3 后端直觉。
+2. 再看 [Day13](./docs/day13-project-kickoff.md) 到 [Day20](./docs/day20-withdraw-nonce-and-retry.md)，理解主项目如何落地。
+3. 然后看 [Day21](./docs/day21-deposit-rescan-and-account-reconcile.md) 到 [Day27](./docs/day27-automatic-account-reconcile-task.md)，理解项目是怎么补治理能力的。
+4. 最后看 [practice/web3-wallet-backend-demo](./practice/web3-wallet-backend-demo) 和 [roadmap/day22-day30-plan.md](./roadmap/day22-day30-plan.md)，理解当前代码状态和下一步迭代方向。
 
 ---
 
-## 后续计划
+## 目录结构
 
-后续会继续围绕“最小钱包后端项目”推进，重点包括：
+### `docs/`
 
-1. 搭建 Spring Boot 项目骨架
-2. 实现 ERC-20 充值监听
-3. 实现提现申请、冻结、审核与状态流转
-4. 增加余额、冻结、流水、账本模型
-5. 加入幂等、断点续跑、确认数处理
-6. 增加对账、补偿和监控能力
+按 Day 组织的学习与项目推进文档，当前已覆盖 `Day01-Day27`。
+
+### `practice/`
+
+可运行的最小示例代码：
+
+- `web3-wallet-backend-demo`
+- `web3j-demo`
+- `web3-hardhat-demo`
+
+### `design/`
+
+更偏系统设计、表结构、接口清单和面试表达。
+
+### `diagrams/`
+
+Mermaid 流程图和架构图。
+
+### `roadmap/`
+
+后续学习计划、项目迭代计划和求职展示节奏。
 
 ---
 
-## 说明
+## 下一步
 
-本仓库聚焦真实的工程实践表达，不依赖虚构业务背景或伪造项目经历。
+当前最自然的下一步是：
 
-更准确地说，它是一个围绕以下目标持续演进的仓库：
+- `Day28：审计日志与监控指标第一版`
 
-1. 系统化梳理 Web3 后端关键知识
-2. 保留最小但可运行的实践样例
-3. 逐步沉淀成一个可扩展的钱包后端项目
-4. 支撑项目展示、技术复盘和面试表达
+重点会放在：
+
+1. 给充值扫描、提现广播、提现超时巡检、自动对账补审计日志。
+2. 输出关键任务计数、失败原因和批次维度指标。
+3. 为后续告警、排障和 GitHub 展示补齐最小可观测性基础。
+
+---
+
+## 相关入口
+
+- [主项目 README](./practice/web3-wallet-backend-demo/README.md)
+- [Day22-Day30 计划](./roadmap/day22-day30-plan.md)
+- [后续任务清单](./roadmap/next-steps.md)
+- [面试亮点整理](./design/interview-highlights.md)
