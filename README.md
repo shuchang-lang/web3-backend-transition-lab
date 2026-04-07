@@ -12,7 +12,7 @@
 
 - [practice/web3-wallet-backend-demo](./practice/web3-wallet-backend-demo)
 
-它已经从 Day13 的项目骨架，推进到 `Day27：自动对账任务第一版`，并且当前 `mvn test` 已通过 `58` 个测试。
+它已经从 Day13 的项目骨架，推进到 `Day29：GitHub 展示与面试表达强化`，并且当前 `mvn test` 已通过 `62` 个测试。
 
 ---
 
@@ -44,12 +44,16 @@
 
 ### 重点入口
 
+- [项目介绍与面试话术](./design/project-pitch.md)
+- [面试亮点整理](./design/interview-highlights.md)
 - [Day13 项目开工总结](./docs/day13-project-kickoff.md)
 - [Day21 手动补扫与最小对账第一版](./docs/day21-deposit-rescan-and-account-reconcile.md)
 - [Day24 提现回执超时巡检](./docs/day24-withdraw-receipt-timeout-and-exception-governance.md)
 - [Day25 nonce 锁与串行广播](./docs/day25-nonce-lock-and-serialized-broadcast.md)
 - [Day26 任务幂等、重试上限与失败分层](./docs/day26-task-idempotency-retry-and-failure-tiering.md)
 - [Day27 自动对账任务第一版](./docs/day27-automatic-account-reconcile-task.md)
+- [Day28 审计日志与监控指标第一版](./docs/day28-audit-log-and-metrics-first-pass.md)
+- [Day29 GitHub 展示与面试表达强化](./docs/day29-github-showcase-and-interview-story.md)
 - [Day22-Day30 继续推进计划](./roadmap/day22-day30-plan.md)
 
 ---
@@ -88,7 +92,7 @@
 - [Day19 提现广播与回执跟踪](./docs/day19-withdraw-broadcast-and-receipt-tracking.md)
 - [Day20 提现 nonce 管理与广播重试](./docs/day20-withdraw-nonce-and-retry.md)
 
-### Day21-Day27：项目治理能力增强
+### Day21-Day29：项目治理能力增强
 
 - [Day21 手动补扫与最小资产对账](./docs/day21-deposit-rescan-and-account-reconcile.md)
 - [Day22 充值链路 reorg 风险识别](./docs/day22-deposit-reorg-detection.md)
@@ -97,12 +101,14 @@
 - [Day25 nonce 锁与串行广播](./docs/day25-nonce-lock-and-serialized-broadcast.md)
 - [Day26 任务幂等、重试上限与失败分层](./docs/day26-task-idempotency-retry-and-failure-tiering.md)
 - [Day27 自动对账任务第一版](./docs/day27-automatic-account-reconcile-task.md)
+- [Day28 审计日志与监控指标第一版](./docs/day28-audit-log-and-metrics-first-pass.md)
+- [Day29 GitHub 展示与面试表达强化](./docs/day29-github-showcase-and-interview-story.md)
 
 ---
 
 ## 当前项目覆盖能力
 
-到 Day27 为止，主项目已经覆盖：
+到 Day29 为止，主项目已经覆盖：
 
 1. ERC-20 `Transfer event` 扫描、候选充值识别、确认数推进、正式入账。
 2. 提现申请、余额冻结、审核通过、审核拒绝、链上广播、回执同步。
@@ -116,6 +122,16 @@
    - 最大自动重试上限 `withdrawBroadcastMaxRetryCount`
 8. 对外订单查询已可看到治理计数，方便后台排障和项目展示。
 9. 自动对账任务、对账结果落库、按用户最近批次 / 按任务批次回查历史快照。
+10. 关键后台任务的审计日志、指标概览和批次级可观测性查询。
+11. 项目介绍、模块设计、接口清单和面试话术的系统化表达。
+
+---
+
+## 一句话项目介绍
+
+如果你想快速理解这个仓库，可以先记住这句话：
+
+> 这是一个用 Java 后端思路构建的 Web3 资金后端实践项目，重点不在单点链上调用，而在把充值、提现、账本、补偿、对账和可观测性串成完整工程主线。
 
 ---
 
@@ -153,8 +169,9 @@
 - [x] 热钱包 nonce 锁与串行广播
 - [x] 任务幂等、重试上限与失败分层第一版
 - [x] 自动对账任务第一版
-- [ ] 审计日志、监控指标与告警
-- [ ] GitHub 展示与面试表达强化
+- [x] 审计日志与监控指标第一版
+- [x] GitHub 展示与面试表达强化
+- [ ] 项目收口与简历表达第一版
 
 ---
 
@@ -172,6 +189,12 @@
    - 审计
    - 定时任务治理
 
+如果你是面试官或者技术负责人，这个仓库最值得看的不是某一个接口，而是下面 3 条线：
+
+1. `充值 -> 提现 -> 账本 -> 流水`
+2. `reorg -> 补偿 -> 对账`
+3. `任务治理 -> 可观测性 -> 项目表达`
+
 ---
 
 ## 推荐阅读顺序
@@ -180,8 +203,9 @@
 
 1. 先看 [Day07](./docs/day07-java-web3j-rpc.md) / [Day09](./docs/day09-deposit-listener.md) / [Day10](./docs/day10-withdrawal-flow.md) / [Day11](./docs/day11-wallet-backend-architecture.md)，快速建立 Web3 后端直觉。
 2. 再看 [Day13](./docs/day13-project-kickoff.md) 到 [Day20](./docs/day20-withdraw-nonce-and-retry.md)，理解主项目如何落地。
-3. 然后看 [Day21](./docs/day21-deposit-rescan-and-account-reconcile.md) 到 [Day27](./docs/day27-automatic-account-reconcile-task.md)，理解项目是怎么补治理能力的。
-4. 最后看 [practice/web3-wallet-backend-demo](./practice/web3-wallet-backend-demo) 和 [roadmap/day22-day30-plan.md](./roadmap/day22-day30-plan.md)，理解当前代码状态和下一步迭代方向。
+3. 然后看 [Day21](./docs/day21-deposit-rescan-and-account-reconcile.md) 到 [Day29](./docs/day29-github-showcase-and-interview-story.md)，理解项目是怎么补治理能力和项目表达的。
+4. 再看 [design/project-pitch.md](./design/project-pitch.md) 和 [design/interview-highlights.md](./design/interview-highlights.md)，理解这个项目该怎么讲。
+5. 最后看 [practice/web3-wallet-backend-demo](./practice/web3-wallet-backend-demo) 和 [roadmap/day22-day30-plan.md](./roadmap/day22-day30-plan.md)，理解当前代码状态和下一步迭代方向。
 
 ---
 
@@ -189,7 +213,7 @@
 
 ### `docs/`
 
-按 Day 组织的学习与项目推进文档，当前已覆盖 `Day01-Day27`。
+按 Day 组织的学习与项目推进文档，当前已覆盖 `Day01-Day29`。
 
 ### `practice/`
 
@@ -217,13 +241,13 @@ Mermaid 流程图和架构图。
 
 当前最自然的下一步是：
 
-- `Day28：审计日志与监控指标第一版`
+- `Day30：项目收口与简历表达第一版`
 
 重点会放在：
 
-1. 给充值扫描、提现广播、提现超时巡检、自动对账补审计日志。
-2. 输出关键任务计数、失败原因和批次维度指标。
-3. 为后续告警、排障和 GitHub 展示补齐最小可观测性基础。
+1. 把项目背景、职责、技术栈和关键难点整理成简历友好的表达。
+2. 继续收口成可直接复述的项目介绍和项目经历。
+3. 把 README、design 文档和简历表达进一步统一起来。
 
 ---
 
@@ -232,4 +256,5 @@ Mermaid 流程图和架构图。
 - [主项目 README](./practice/web3-wallet-backend-demo/README.md)
 - [Day22-Day30 计划](./roadmap/day22-day30-plan.md)
 - [后续任务清单](./roadmap/next-steps.md)
+- [项目介绍与面试话术](./design/project-pitch.md)
 - [面试亮点整理](./design/interview-highlights.md)

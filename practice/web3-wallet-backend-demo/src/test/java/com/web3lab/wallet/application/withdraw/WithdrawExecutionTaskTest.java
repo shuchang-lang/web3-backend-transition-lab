@@ -1,5 +1,6 @@
 package com.web3lab.wallet.application.withdraw;
 
+import com.web3lab.wallet.application.task.TaskAuditLogAppService;
 import com.web3lab.wallet.config.WalletWeb3Properties;
 import com.web3lab.wallet.controller.dto.WithdrawTaskRunResponse;
 import com.web3lab.wallet.infrastructure.web3.Web3Gateway;
@@ -11,6 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,10 +30,15 @@ class WithdrawExecutionTaskTest {
     @Mock
     private Web3Gateway web3Gateway;
 
+    @Mock
+    private TaskAuditLogAppService taskAuditLogAppService;
+
     @Test
     void shouldSkipBroadcastWhenAnotherBroadcastTaskIsRunning() {
         WithdrawExecutionTask task = newTask();
         when(web3Gateway.supportsWithdrawBroadcast()).thenReturn(true);
+        when(taskAuditLogAppService.nextBatchNo(WithdrawExecutionTask.WITHDRAW_BROADCAST_TASK))
+                .thenReturn("withdraw_broadcast-20260407221000001");
         when(withdrawBroadcastLock.tryLock()).thenReturn(false);
 
         WithdrawTaskRunResponse response = task.runBroadcastOnce();
@@ -41,12 +49,20 @@ class WithdrawExecutionTaskTest {
         assertEquals("当前已有另一轮提现广播任务在执行中，已跳过本轮请求", response.getRemark());
         verify(withdrawExecutionAppService, never()).broadcastPendingOrders();
         verify(withdrawBroadcastLock, never()).unlock();
+        verify(taskAuditLogAppService).recordSkipped(
+                WithdrawExecutionTask.WITHDRAW_BROADCAST_TASK,
+                "withdraw_broadcast-20260407221000001",
+                "当前已有另一轮提现广播任务在执行中",
+                "已跳过本轮提现广播请求"
+        );
     }
 
     @Test
     void shouldBroadcastSequentiallyAndReleaseLock() {
         WithdrawExecutionTask task = newTask();
         when(web3Gateway.supportsWithdrawBroadcast()).thenReturn(true);
+        when(taskAuditLogAppService.nextBatchNo(WithdrawExecutionTask.WITHDRAW_BROADCAST_TASK))
+                .thenReturn("withdraw_broadcast-20260407221000002");
         when(withdrawBroadcastLock.tryLock()).thenReturn(true);
         when(withdrawExecutionAppService.broadcastPendingOrders())
                 .thenReturn(new WithdrawExecutionAppService.BroadcastBatchResult(2, 1));
@@ -59,12 +75,24 @@ class WithdrawExecutionTaskTest {
         assertEquals("已按串行方式完成一轮提现广播", response.getRemark());
         verify(withdrawExecutionAppService).broadcastPendingOrders();
         verify(withdrawBroadcastLock).unlock();
+        verify(taskAuditLogAppService).recordSuccess(
+                eq(WithdrawExecutionTask.WITHDRAW_BROADCAST_TASK),
+                eq("withdraw_broadcast-20260407221000002"),
+                eq(2),
+                eq(1),
+                eq(1),
+                eq(0),
+                contains("processedCount=2"),
+                eq("已按串行方式完成一轮提现广播")
+        );
     }
 
     @Test
     void shouldReleaseLockWhenNoPendingWithdrawExists() {
         WithdrawExecutionTask task = newTask();
         when(web3Gateway.supportsWithdrawBroadcast()).thenReturn(true);
+        when(taskAuditLogAppService.nextBatchNo(WithdrawExecutionTask.WITHDRAW_BROADCAST_TASK))
+                .thenReturn("withdraw_broadcast-20260407221000003");
         when(withdrawBroadcastLock.tryLock()).thenReturn(true);
         when(withdrawExecutionAppService.broadcastPendingOrders())
                 .thenReturn(new WithdrawExecutionAppService.BroadcastBatchResult(0, 0));
@@ -77,12 +105,19 @@ class WithdrawExecutionTaskTest {
         assertEquals("当前没有待广播的提现订单", response.getRemark());
         verify(withdrawExecutionAppService).broadcastPendingOrders();
         verify(withdrawBroadcastLock).unlock();
+        verify(taskAuditLogAppService).recordSkipped(
+                WithdrawExecutionTask.WITHDRAW_BROADCAST_TASK,
+                "withdraw_broadcast-20260407221000003",
+                "当前没有待广播的提现订单",
+                "本轮没有可执行的提现广播订单"
+        );
     }
 
     private WithdrawExecutionTask newTask() {
         return new WithdrawExecutionTask(
                 withdrawExecutionAppService,
                 withdrawBroadcastLock,
+                taskAuditLogAppService,
                 web3Gateway,
                 new WalletWeb3Properties(
                         "http://localhost:8545",

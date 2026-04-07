@@ -4,9 +4,17 @@
 
 当前已经推进到：
 
-- `Day27：自动对账任务第一版`
+- `Day29：GitHub 展示与面试表达强化`
 
 这个子项目的定位不是完整生产系统，而是一个足够真实、足够可展示、足够能讲清楚的 Web3 资金后端最小闭环。
+
+---
+
+## 一句话怎么讲
+
+如果要快速介绍这个子项目，可以直接说：
+
+> 这是一个用 Java 后端方式实现的 Web3 钱包资金后端 demo，覆盖充值监听、提现执行、内部账本、异常治理、自动对账和任务可观测性，目标是把链上结果稳定翻译成平台内部账务。
 
 ---
 
@@ -32,6 +40,7 @@
   - `RETRYABLE / MANUAL_HANDLE_REQUIRED`
   - 最大自动重试次数 `withdrawBroadcastMaxRetryCount`
 - 自动对账任务、对账结果快照落库与历史回查
+- 统一任务审计日志、指标概览与后台可观测性查询
 
 ---
 
@@ -51,6 +60,8 @@
 - `POST /admin/reconcile/task/run`
 - `GET /admin/reconcile/result/latest/{userId}`
 - `GET /admin/reconcile/result/batch/{taskBatchNo}`
+- `GET /admin/task-observability/audit/{taskName}`
+- `GET /admin/task-observability/metrics/overview`
 - `POST /withdraw/apply`
 - `GET /withdraw/list`
 - `GET /withdraw/{requestNo}`
@@ -89,6 +100,11 @@
   - 人工级错误：直接转 `MANUAL_HANDLE_REQUIRED`
 - Day27 自动对账任务会聚合余额主表、流水、已入账充值、提现订单里的业务痕迹
 - 查询“用户最近自动对账结果”时，返回的是最近一次批次下的全部资产结果
+- Day28 可观测性第一版当前重点覆盖 4 个关键任务：
+  - 充值扫描
+  - 提现广播
+  - 提现回执超时巡检
+  - 自动对账
 - 当前人工级错误识别包含：
   - `nonce too low`
   - `insufficient funds`
@@ -188,6 +204,10 @@ Day27 新增的自动对账结果表：
 
 - `account_reconcile_result`
 
+Day28 新增的任务审计日志表：
+
+- `task_audit_log`
+
 ---
 
 ## 当前主链路
@@ -240,6 +260,40 @@ Day27 新增的自动对账结果表：
 4. 把结果快照写入 `account_reconcile_result`
 5. 可通过用户最近批次或指定批次回查结果
 
+### Day28 可观测性补充
+
+1. 关键任务执行后会落一条 `task_audit_log`
+2. 审计日志会保留批次号、状态、关键计数和失败原因
+3. 指标快照会用 `metricSnapshot` 记录任务特有计数
+4. 可通过 `GET /admin/task-observability/audit/{taskName}` 查询最近日志
+5. 可通过 `GET /admin/task-observability/metrics/overview` 查看核心任务指标概览
+
+---
+
+## 这个项目最适合讲的亮点
+
+如果面试时只挑几件事讲，优先讲下面 5 个：
+
+1. ERC-20 充值不是直接入账，而是“候选记录 + 确认数达标 + 正式入账”
+2. 提现不是直接打款，而是“冻结 -> 审核 -> 广播 -> 回执同步 -> 成功扣减 / 失败回退”
+3. `reorg` 风险不是只识别，还继续做了补偿与冲正
+4. 自动对账把账本、流水、充值、提现之间的一致性检查任务化了
+5. 任务审计日志和指标概览让后台任务具备了最小可观测性
+
+---
+
+## 建议演示顺序
+
+如果要给别人现场演示，可以按这个顺序：
+
+1. 先讲充值主链路
+2. 再讲提现主链路
+3. 然后讲 `reorg`、补偿和超时巡检等异常治理
+4. 再讲自动对账
+5. 最后讲任务审计日志和指标概览
+
+这样能让别人从“主流程”一路看到“治理能力”。
+
 ---
 
 ## 当前测试
@@ -250,7 +304,7 @@ Day27 新增的自动对账结果表：
 mvn test
 ```
 
-已通过 `58` 个测试，覆盖：
+已通过 `62` 个测试，覆盖：
 
 - 控制器接口返回
 - 候选充值识别与正式入账
@@ -262,6 +316,7 @@ mvn test
 - 单 JVM 串行广播锁与锁占用跳过语义
 - Day26 新增的广播失败分层与最大重试上限
 - Day27 自动对账任务、结果查询与批次表达
+- Day28 任务审计日志、指标概览与后台可观测性接口
 
 ---
 
@@ -269,10 +324,19 @@ mvn test
 
 下一步进入：
 
-- `Day28：审计日志与监控指标第一版`
+- `Day30：项目收口与简历表达第一版`
 
 重点会放在：
 
-1. 给充值扫描、提现广播、提现超时巡检、自动对账补审计日志
-2. 输出关键任务计数、失败原因和批次维度指标
-3. 为告警、排障和 GitHub 展示补齐最小可观测性基础
+1. 把项目背景、职责、技术栈和关键难点整理成更适合简历的表达
+2. 继续收口成可直接复述的项目经历
+3. 让 README、设计文档和简历表述进一步统一
+
+---
+
+## 相关设计材料
+
+- [项目介绍与面试话术](../../design/project-pitch.md)
+- [面试亮点整理](../../design/interview-highlights.md)
+- [模块设计](../../design/wallet-backend-module-design.md)
+- [接口清单](../../design/wallet-backend-api-list.md)

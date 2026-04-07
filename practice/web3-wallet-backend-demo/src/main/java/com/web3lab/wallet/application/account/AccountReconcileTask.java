@@ -1,6 +1,7 @@
 package com.web3lab.wallet.application.account;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.web3lab.wallet.application.task.TaskAuditLogAppService;
 import com.web3lab.wallet.controller.dto.AccountAssetReconcileResponse;
 import com.web3lab.wallet.controller.dto.AccountReconcileTaskResponse;
 import com.web3lab.wallet.domain.account.AccountBalance;
@@ -51,19 +52,22 @@ public class AccountReconcileTask {
     private final WithdrawOrderMapper withdrawOrderMapper;
     private final AccountReconcileAppService accountReconcileAppService;
     private final AccountReconcileResultMapper accountReconcileResultMapper;
+    private final TaskAuditLogAppService taskAuditLogAppService;
 
     public AccountReconcileTask(AccountBalanceMapper accountBalanceMapper,
                                 AccountBillMapper accountBillMapper,
                                 DepositRecordMapper depositRecordMapper,
                                 WithdrawOrderMapper withdrawOrderMapper,
                                 AccountReconcileAppService accountReconcileAppService,
-                                AccountReconcileResultMapper accountReconcileResultMapper) {
+                                AccountReconcileResultMapper accountReconcileResultMapper,
+                                TaskAuditLogAppService taskAuditLogAppService) {
         this.accountBalanceMapper = accountBalanceMapper;
         this.accountBillMapper = accountBillMapper;
         this.depositRecordMapper = depositRecordMapper;
         this.withdrawOrderMapper = withdrawOrderMapper;
         this.accountReconcileAppService = accountReconcileAppService;
         this.accountReconcileResultMapper = accountReconcileResultMapper;
+        this.taskAuditLogAppService = taskAuditLogAppService;
     }
 
     /**
@@ -74,61 +78,92 @@ public class AccountReconcileTask {
     @Transactional
     public AccountReconcileTaskResponse runOnce() {
         String taskBatchNo = buildTaskBatchNo();
-        List<AssetTarget> assetTargets = collectAssetTargets();
-        if (assetTargets.isEmpty()) {
+        try {
+            List<AssetTarget> assetTargets = collectAssetTargets();
+            if (assetTargets.isEmpty()) {
+                taskAuditLogAppService.recordSkipped(
+                        ACCOUNT_RECONCILE_TASK,
+                        taskBatchNo,
+                        "当前没有需要自动对账的资产目标",
+                        "本轮自动对账没有扫描到业务资产"
+                );
+                return new AccountReconcileTaskResponse(
+                        ACCOUNT_RECONCILE_TASK,
+                        taskBatchNo,
+                        0,
+                        0,
+                        0,
+                        false,
+                        "当前没有需要自动对账的资产目标"
+                );
+            }
+
+            int consistentCount = 0;
+            int inconsistentCount = 0;
+            for (AssetTarget assetTarget : assetTargets) {
+                AccountAssetReconcileResponse response = accountReconcileAppService.reconcile(
+                        assetTarget.userId(),
+                        assetTarget.chain(),
+                        assetTarget.tokenSymbol()
+                );
+                AccountReconcileResult result = AccountReconcileResult.fromResponse(
+                        ACCOUNT_RECONCILE_TASK,
+                        taskBatchNo,
+                        response
+                );
+                accountReconcileResultMapper.insert(result);
+
+                if (Boolean.TRUE.equals(response.getConsistent())) {
+                    consistentCount++;
+                } else {
+                    inconsistentCount++;
+                    log.warn("自动对账发现资产不一致，batchNo={}, userId={}, chain={}, tokenSymbol={}, reason={}",
+                            taskBatchNo,
+                            response.getUserId(),
+                            response.getChain(),
+                            response.getTokenSymbol(),
+                            response.getMismatchReason());
+                }
+            }
+
+            String remark = inconsistentCount > 0
+                    ? "已完成自动对账，本轮发现 " + inconsistentCount + " 个不一致资产"
+                    : "已完成自动对账，本轮资产全部一致";
+            log.info("自动对账任务完成，batchNo={}, processedAssetCount={}, inconsistentCount={}",
+                    taskBatchNo, assetTargets.size(), inconsistentCount);
+            taskAuditLogAppService.recordSuccess(
+                    ACCOUNT_RECONCILE_TASK,
+                    taskBatchNo,
+                    assetTargets.size(),
+                    consistentCount,
+                    inconsistentCount,
+                    0,
+                    buildMetricSnapshot(consistentCount, inconsistentCount),
+                    remark
+            );
             return new AccountReconcileTaskResponse(
                     ACCOUNT_RECONCILE_TASK,
                     taskBatchNo,
-                    0,
-                    0,
-                    0,
-                    false,
-                    "当前没有需要自动对账的资产目标"
+                    assetTargets.size(),
+                    consistentCount,
+                    inconsistentCount,
+                    true,
+                    remark
             );
-        }
-
-        int consistentCount = 0;
-        int inconsistentCount = 0;
-        for (AssetTarget assetTarget : assetTargets) {
-            AccountAssetReconcileResponse response = accountReconcileAppService.reconcile(
-                    assetTarget.userId(),
-                    assetTarget.chain(),
-                    assetTarget.tokenSymbol()
-            );
-            AccountReconcileResult result = AccountReconcileResult.fromResponse(
+        } catch (RuntimeException ex) {
+            taskAuditLogAppService.recordFailure(
                     ACCOUNT_RECONCILE_TASK,
                     taskBatchNo,
-                    response
+                    0,
+                    0,
+                    0,
+                    1,
+                    "",
+                    resolveFailureReason(ex),
+                    "自动对账任务执行失败"
             );
-            accountReconcileResultMapper.insert(result);
-
-            if (Boolean.TRUE.equals(response.getConsistent())) {
-                consistentCount++;
-            } else {
-                inconsistentCount++;
-                log.warn("自动对账发现资产不一致，batchNo={}, userId={}, chain={}, tokenSymbol={}, reason={}",
-                        taskBatchNo,
-                        response.getUserId(),
-                        response.getChain(),
-                        response.getTokenSymbol(),
-                        response.getMismatchReason());
-            }
+            throw ex;
         }
-
-        String remark = inconsistentCount > 0
-                ? "已完成自动对账，本轮发现 " + inconsistentCount + " 个不一致资产"
-                : "已完成自动对账，本轮资产全部一致";
-        log.info("自动对账任务完成，batchNo={}, processedAssetCount={}, inconsistentCount={}",
-                taskBatchNo, assetTargets.size(), inconsistentCount);
-        return new AccountReconcileTaskResponse(
-                ACCOUNT_RECONCILE_TASK,
-                taskBatchNo,
-                assetTargets.size(),
-                consistentCount,
-                inconsistentCount,
-                true,
-                remark
-        );
     }
 
     /**
@@ -203,6 +238,29 @@ public class AccountReconcileTask {
      */
     private String buildTaskBatchNo() {
         return ACCOUNT_RECONCILE_TASK + "-" + LocalDateTime.now().format(TASK_BATCH_NO_FORMATTER);
+    }
+
+    /**
+     * 构建自动对账指标快照。
+     *
+     * @param consistentCount 一致资产数量
+     * @param inconsistentCount 不一致资产数量
+     * @return 指标快照文本
+     */
+    private String buildMetricSnapshot(int consistentCount, int inconsistentCount) {
+        return "consistentCount=" + consistentCount + ",inconsistentCount=" + inconsistentCount;
+    }
+
+    /**
+     * 解析任务失败原因。
+     *
+     * @param ex 异常对象
+     * @return 失败原因
+     */
+    private String resolveFailureReason(RuntimeException ex) {
+        return ex.getMessage() == null || ex.getMessage().isBlank()
+                ? ex.getClass().getSimpleName()
+                : ex.getMessage();
     }
 
     /**

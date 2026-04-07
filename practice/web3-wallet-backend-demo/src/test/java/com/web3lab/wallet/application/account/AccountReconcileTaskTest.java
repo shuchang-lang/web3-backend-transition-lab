@@ -1,5 +1,6 @@
 package com.web3lab.wallet.application.account;
 
+import com.web3lab.wallet.application.task.TaskAuditLogAppService;
 import com.web3lab.wallet.controller.dto.AccountAssetReconcileResponse;
 import com.web3lab.wallet.controller.dto.AccountReconcileTaskResponse;
 import com.web3lab.wallet.domain.account.AccountBalance;
@@ -24,7 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -51,6 +55,9 @@ class AccountReconcileTaskTest {
 
     @Mock
     private AccountReconcileResultMapper accountReconcileResultMapper;
+
+    @Mock
+    private TaskAuditLogAppService taskAuditLogAppService;
 
     @Test
     void shouldPersistDistinctAssetResultsWhenRunningAutoReconcileTask() {
@@ -118,6 +125,16 @@ class AccountReconcileTaskTest {
         assertTrue(persistedResults.stream()
                 .allMatch(result -> persistedResults.get(0).getTaskBatchNo().equals(result.getTaskBatchNo())));
         assertTrue(persistedResults.stream().anyMatch(result -> Boolean.FALSE.equals(result.getConsistent())));
+        verify(taskAuditLogAppService).recordSuccess(
+                eq(AccountReconcileTask.ACCOUNT_RECONCILE_TASK),
+                anyString(),
+                eq(3),
+                eq(2),
+                eq(1),
+                eq(0),
+                contains("consistentCount=2"),
+                eq("已完成自动对账，本轮发现 1 个不一致资产")
+        );
     }
 
     @Test
@@ -136,6 +153,12 @@ class AccountReconcileTaskTest {
         assertEquals(0, response.getInconsistentCount());
         verify(accountReconcileResultMapper, never()).insert(any(AccountReconcileResult.class));
         verifyNoInteractions(accountReconcileAppService);
+        verify(taskAuditLogAppService).recordSkipped(
+                eq(AccountReconcileTask.ACCOUNT_RECONCILE_TASK),
+                anyString(),
+                eq("当前没有需要自动对账的资产目标"),
+                eq("本轮自动对账没有扫描到业务资产")
+        );
     }
 
     private AccountReconcileTask newTask() {
@@ -145,7 +168,8 @@ class AccountReconcileTaskTest {
                 depositRecordMapper,
                 withdrawOrderMapper,
                 accountReconcileAppService,
-                accountReconcileResultMapper
+                accountReconcileResultMapper,
+                taskAuditLogAppService
         );
     }
 

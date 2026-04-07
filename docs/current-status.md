@@ -2,8 +2,8 @@
 
 ## 当前进度
 
-- 当前已推进到：`Day27`
-- 当前阶段主题：`自动对账任务第一版`
+- 当前已推进到：`Day29`
+- 当前阶段主题：`GitHub 展示与面试表达强化`
 
 ## 当前已完成
 
@@ -17,12 +17,14 @@
 - Day25：`nonce` 锁与单 JVM 串行广播第一版
 - Day26：任务幂等、重试上限与失败分层第一版
 - Day27：自动对账任务第一版
+- Day28：审计日志与监控指标第一版
+- Day29：GitHub 展示与面试表达强化
 
 ## 当前主工程状态
 
 - 工程路径：`practice/web3-wallet-backend-demo`
 - 当前测试结果：`mvn test` 通过
-- 当前测试数量：`58`
+- 当前测试数量：`62`
 
 ## 当前关键能力
 
@@ -41,29 +43,38 @@
   - `account_asset_auto_reconcile` 批次化执行
   - 按用户最近批次 / 按任务批次回查结果
   - 保留完整一致性快照与 `mismatchReason`
+- 任务可观测性：
+  - `task_audit_log` 审计日志落库
+  - 关键任务独立事务留痕
+  - 最近审计日志查询
+  - 核心任务指标概览查询
+- 项目表达材料：
+  - 30 秒 / 90 秒 / 3 分钟项目介绍
+  - GitHub 展示阅读路径
+  - 面试亮点与高频问答
+  - 模块设计与接口清单收口
 
-## Day27 本次落地
+## Day29 本次落地
 
-- 新增自动对账结果实体：`AccountReconcileResult`
-- 新增自动对账结果表：`account_reconcile_result`
-- 新增自动对账任务：`AccountReconcileTask.runOnce()`
-- 自动对账扫描范围采用业务痕迹并集：
-  - `account_balance`
-  - `account_bill`
-  - `deposit_record(CREDITED)`
-  - `withdraw_order`
-- 新增自动对账结果查询服务：`AccountReconcileResultAppService`
-- 后台新增接口：
-  - `POST /admin/reconcile/task/run`
-  - `GET /admin/reconcile/result/latest/{userId}`
-  - `GET /admin/reconcile/result/batch/{taskBatchNo}`
-- 当前自动对账结果会落完整快照，而不是只记录通过 / 失败
+- 新增项目介绍文档：`design/project-pitch.md`
+- 重写面试亮点文档：`design/interview-highlights.md`
+- 重写模块设计文档：`design/wallet-backend-module-design.md`
+- 重写接口清单文档：`design/wallet-backend-api-list.md`
+- 新增 Day29 文档：`docs/day29-github-showcase-and-interview-story.md`
+- 根 README 已补强：
+  - 一句话项目介绍
+  - 更清晰的阅读顺序
+  - GitHub / 面试入口
+- 主项目 README 已补强：
+  - 一句话怎么讲
+  - 最适合讲的 5 个亮点
+  - 建议演示顺序
 
 ## 下一步
 
-- 进入：`Day28`
-- 主题：`审计日志与监控指标第一版`
+- 进入：`Day30`
+- 主题：`项目收口与简历表达第一版`
 - 目标：
-  - 给充值扫描、提现广播、提现超时巡检、自动对账补审计日志
-  - 输出关键任务计数、失败原因和批次维度指标
-  - 为告警、排障和 GitHub 展示补齐最小可观测性基础
+  - 把项目背景、职责、技术栈和关键难点整理成简历友好的表达
+  - 形成更完整的项目介绍与可直接复述的项目经历
+  - 让 README、design 文档和简历表述进一步统一

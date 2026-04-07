@@ -1,6 +1,7 @@
 package com.web3lab.wallet.application.deposit;
 
 import com.web3lab.wallet.application.scan.ChainScanProgressAppService;
+import com.web3lab.wallet.application.task.TaskAuditLogAppService;
 import com.web3lab.wallet.config.WalletDefaultsProperties;
 import com.web3lab.wallet.config.WalletWeb3Properties;
 import com.web3lab.wallet.controller.dto.ChainScanProgressResponse;
@@ -15,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -36,6 +38,9 @@ class DepositScanTaskTest {
     @Mock
     private DepositSettlementAppService depositSettlementAppService;
 
+    @Mock
+    private TaskAuditLogAppService taskAuditLogAppService;
+
     @Test
     void shouldSkipRealScanWhenRpcConfigIsMissing() {
         DepositScanTask depositScanTask = new DepositScanTask(
@@ -43,6 +48,7 @@ class DepositScanTaskTest {
                 web3Gateway,
                 depositCandidateAppService,
                 depositSettlementAppService,
+                taskAuditLogAppService,
                 new WalletDefaultsProperties("ETH_SEPOLIA", "USDT"),
                 new WalletWeb3Properties("", "", 0L, 200, 6, 6, "", 11155111L, 120000L, 3, 10L, 2)
         );
@@ -55,6 +61,8 @@ class DepositScanTaskTest {
         );
         when(chainScanProgressAppService.getOrInitProgress(null, ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK))
                 .thenReturn(initProgress);
+        when(taskAuditLogAppService.nextBatchNo(ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK))
+                .thenReturn("erc20_deposit_scan-20260407220000001");
 
         ChainScanProgressResponse response = depositScanTask.runOnce();
 
@@ -62,6 +70,12 @@ class DepositScanTaskTest {
         verify(web3Gateway, never()).getLatestBlockNumber();
         verify(depositCandidateAppService, never()).detectAndStore(eq("ETH_SEPOLIA"), eq("USDT"), eq(6), anyList());
         verify(depositSettlementAppService, never()).refreshConfirmationsAndCredit("ETH_SEPOLIA", "USDT", 0L, 6);
+        verify(taskAuditLogAppService).recordSkipped(
+                ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK,
+                "erc20_deposit_scan-20260407220000001",
+                "当前未配置可用的 RPC 或代币合约地址",
+                "已跳过 ERC-20 充值扫描"
+        );
     }
 
     @Test
@@ -71,6 +85,7 @@ class DepositScanTaskTest {
                 web3Gateway,
                 depositCandidateAppService,
                 depositSettlementAppService,
+                taskAuditLogAppService,
                 new WalletDefaultsProperties("ETH_SEPOLIA", "USDT"),
                 new WalletWeb3Properties("http://localhost:8545", "0xToken", 100L, 50, 6, 6, "", 11155111L, 120000L, 3, 10L, 2)
         );
@@ -90,6 +105,8 @@ class DepositScanTaskTest {
         );
         when(chainScanProgressAppService.getOrInitProgress(null, ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK))
                 .thenReturn(initProgress);
+        when(taskAuditLogAppService.nextBatchNo(ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK))
+                .thenReturn("erc20_deposit_scan-20260407220000002");
         when(web3Gateway.supportsTransferScan()).thenReturn(true);
         when(web3Gateway.getLatestBlockNumber()).thenReturn(180L);
         when(web3Gateway.getErc20TransferLogs("0xToken", 121L, 170L)).thenReturn(List.of(
@@ -122,6 +139,16 @@ class DepositScanTaskTest {
                 "ETH_SEPOLIA",
                 ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK,
                 170L
+        );
+        verify(taskAuditLogAppService).recordSuccess(
+                eq(ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK),
+                eq("erc20_deposit_scan-20260407220000002"),
+                eq(1),
+                eq(1),
+                eq(0),
+                eq(0),
+                contains("fromBlock=121"),
+                eq("已完成一轮 ERC-20 充值扫描")
         );
     }
 }

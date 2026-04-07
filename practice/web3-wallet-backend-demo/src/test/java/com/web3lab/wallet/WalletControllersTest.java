@@ -10,11 +10,13 @@ import com.web3lab.wallet.application.deposit.DepositRecordAppService;
 import com.web3lab.wallet.application.deposit.DepositRescanTask;
 import com.web3lab.wallet.application.deposit.DepositScanTask;
 import com.web3lab.wallet.application.scan.ChainScanProgressAppService;
+import com.web3lab.wallet.application.task.TaskAuditLogAppService;
 import com.web3lab.wallet.application.address.WalletAddressAppService;
 import com.web3lab.wallet.application.withdraw.WithdrawExecutionTask;
 import com.web3lab.wallet.application.withdraw.WithdrawOrderAppService;
 import com.web3lab.wallet.application.withdraw.WithdrawTimeoutCheckTask;
 import com.web3lab.wallet.controller.AdminReconcileController;
+import com.web3lab.wallet.controller.AdminTaskObservabilityController;
 import com.web3lab.wallet.controller.AdminWithdrawReviewController;
 import com.web3lab.wallet.controller.AdminWithdrawTaskController;
 import com.web3lab.wallet.common.exception.ApiExceptionHandler;
@@ -35,6 +37,8 @@ import com.web3lab.wallet.controller.dto.DepositRecordResponse;
 import com.web3lab.wallet.controller.dto.DepositRescanResponse;
 import com.web3lab.wallet.controller.dto.ApproveWithdrawOrderRequest;
 import com.web3lab.wallet.controller.dto.CreateWithdrawOrderRequest;
+import com.web3lab.wallet.controller.dto.TaskAuditLogResponse;
+import com.web3lab.wallet.controller.dto.TaskMetricOverviewResponse;
 import com.web3lab.wallet.controller.dto.WithdrawTimeoutCheckResponse;
 import com.web3lab.wallet.controller.dto.WithdrawTaskRunResponse;
 import com.web3lab.wallet.controller.dto.WithdrawOrderResponse;
@@ -104,6 +108,9 @@ class WalletControllersTest {
     @Mock
     private AccountReconcileResultAppService accountReconcileResultAppService;
 
+    @Mock
+    private TaskAuditLogAppService taskAuditLogAppService;
+
     @InjectMocks
     private WalletAddressController walletAddressController;
 
@@ -118,6 +125,9 @@ class WalletControllersTest {
 
     @InjectMocks
     private AdminReconcileController adminReconcileController;
+
+    @InjectMocks
+    private AdminTaskObservabilityController adminTaskObservabilityController;
 
     @InjectMocks
     private WithdrawOrderController withdrawOrderController;
@@ -138,6 +148,7 @@ class WalletControllersTest {
                         depositRecordController,
                         adminTaskController,
                         adminReconcileController,
+                        adminTaskObservabilityController,
                         withdrawOrderController,
                         adminWithdrawReviewController,
                         adminWithdrawTaskController
@@ -426,6 +437,62 @@ class WalletControllersTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].userId").value(1002))
                 .andExpect(jsonPath("$.data[0].tokenSymbol").value("USDC"));
+    }
+
+    @Test
+    void shouldQueryTaskAuditLogs() throws Exception {
+        TaskAuditLogResponse response = new TaskAuditLogResponse();
+        response.setId(21L);
+        response.setTaskName("withdraw_broadcast");
+        response.setTaskBatchNo("withdraw_broadcast-20260407223000001");
+        response.setTaskStatus("SUCCESS");
+        response.setProcessedCount(2);
+        response.setSuccessCount(1);
+        response.setWarningCount(1);
+        response.setFailCount(0);
+        response.setMetricSnapshot("processedCount=2,updatedCount=1");
+        response.setFailureReason(null);
+        response.setRemark("已按串行方式完成一轮提现广播");
+        response.setCreatedAt(LocalDateTime.of(2026, 4, 7, 22, 30));
+        when(taskAuditLogAppService.listLatestByTaskName("withdraw_broadcast", 2)).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/admin/task-observability/audit/withdraw_broadcast").param("limit", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].taskName").value("withdraw_broadcast"))
+                .andExpect(jsonPath("$.data[0].taskStatus").value("SUCCESS"));
+    }
+
+    @Test
+    void shouldQueryTaskMetricOverview() throws Exception {
+        TaskMetricOverviewResponse response = new TaskMetricOverviewResponse();
+        response.setTaskName("account_asset_auto_reconcile");
+        response.setLatestTaskBatchNo("account_asset_auto_reconcile-20260407224000001");
+        response.setLatestTaskStatus("SUCCESS");
+        response.setTotalRunCount(3);
+        response.setSuccessRunCount(2);
+        response.setSkippedRunCount(1);
+        response.setFailedRunCount(0);
+        response.setTotalProcessedCount(8);
+        response.setTotalSuccessCount(6);
+        response.setTotalWarningCount(2);
+        response.setTotalFailCount(0);
+        response.setLatestProcessedCount(3);
+        response.setLatestSuccessCount(2);
+        response.setLatestWarningCount(1);
+        response.setLatestFailCount(0);
+        response.setLatestMetricSnapshot("consistentCount=2,inconsistentCount=1");
+        response.setLatestFailureReason(null);
+        response.setLatestRemark("已完成自动对账，本轮发现 1 个不一致资产");
+        response.setLatestRunAt(LocalDateTime.of(2026, 4, 7, 22, 40));
+        when(taskAuditLogAppService.listMetricOverview()).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/admin/task-observability/metrics/overview"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].taskName").value("account_asset_auto_reconcile"))
+                .andExpect(jsonPath("$.data[0].latestTaskStatus").value("SUCCESS"))
+                .andExpect(jsonPath("$.data[0].totalRunCount").value(3));
     }
 
     @Test

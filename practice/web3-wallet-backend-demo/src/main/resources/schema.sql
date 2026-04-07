@@ -120,3 +120,22 @@ CREATE TABLE IF NOT EXISTS account_reconcile_result (
     KEY idx_account_reconcile_result_user_batch (user_id, task_batch_no),
     KEY idx_account_reconcile_result_user_asset (user_id, chain, token_symbol)
 );
+
+CREATE TABLE IF NOT EXISTS task_audit_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    task_name VARCHAR(64) NOT NULL,
+    task_batch_no VARCHAR(64) NOT NULL,
+    task_status VARCHAR(32) NOT NULL,
+    processed_count INT NOT NULL,
+    success_count INT NOT NULL,
+    warning_count INT NOT NULL,
+    fail_count INT NOT NULL,
+    metric_snapshot VARCHAR(255),
+    failure_reason VARCHAR(255),
+    remark VARCHAR(255),
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    KEY idx_task_audit_log_task_name (task_name),
+    KEY idx_task_audit_log_task_batch_no (task_batch_no),
+    KEY idx_task_audit_log_task_name_created (task_name, created_at)
+);

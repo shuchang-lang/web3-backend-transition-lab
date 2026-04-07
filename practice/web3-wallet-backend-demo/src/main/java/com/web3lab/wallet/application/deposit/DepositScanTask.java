@@ -1,6 +1,7 @@
 package com.web3lab.wallet.application.deposit;
 
 import com.web3lab.wallet.application.scan.ChainScanProgressAppService;
+import com.web3lab.wallet.application.task.TaskAuditLogAppService;
 import com.web3lab.wallet.config.WalletDefaultsProperties;
 import com.web3lab.wallet.config.WalletWeb3Properties;
 import com.web3lab.wallet.controller.dto.ChainScanProgressResponse;
@@ -24,6 +25,7 @@ public class DepositScanTask {
     private final Web3Gateway web3Gateway;
     private final DepositCandidateAppService depositCandidateAppService;
     private final DepositSettlementAppService depositSettlementAppService;
+    private final TaskAuditLogAppService taskAuditLogAppService;
     private final WalletDefaultsProperties walletDefaultsProperties;
     private final WalletWeb3Properties walletWeb3Properties;
 
@@ -31,12 +33,14 @@ public class DepositScanTask {
                            Web3Gateway web3Gateway,
                            DepositCandidateAppService depositCandidateAppService,
                            DepositSettlementAppService depositSettlementAppService,
+                           TaskAuditLogAppService taskAuditLogAppService,
                            WalletDefaultsProperties walletDefaultsProperties,
                            WalletWeb3Properties walletWeb3Properties) {
         this.chainScanProgressAppService = chainScanProgressAppService;
         this.web3Gateway = web3Gateway;
         this.depositCandidateAppService = depositCandidateAppService;
         this.depositSettlementAppService = depositSettlementAppService;
+        this.taskAuditLogAppService = taskAuditLogAppService;
         this.walletDefaultsProperties = walletDefaultsProperties;
         this.walletWeb3Properties = walletWeb3Properties;
     }
@@ -50,42 +54,79 @@ public class DepositScanTask {
      * @return 当前扫描进度
      */
     public ChainScanProgressResponse runOnce() {
-        ChainScanProgressResponse progress = chainScanProgressAppService.getOrInitProgress(
-                null,
-                ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK
-        );
-        if (!walletWeb3Properties.readyForDepositScan() || !web3Gateway.supportsTransferScan()) {
-            log.info("跳过 ERC-20 充值扫描，当前未配置可用的 RPC 或代币合约地址，gateway={}", web3Gateway.clientName());
-            return progress;
-        }
+        String taskName = ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK;
+        String taskBatchNo = taskAuditLogAppService.nextBatchNo(taskName);
+        try {
+            ChainScanProgressResponse progress = chainScanProgressAppService.getOrInitProgress(null, taskName);
+            if (!walletWeb3Properties.readyForDepositScan() || !web3Gateway.supportsTransferScan()) {
+                log.info("跳过 ERC-20 充值扫描，当前未配置可用的 RPC 或代币合约地址，gateway={}", web3Gateway.clientName());
+                taskAuditLogAppService.recordSkipped(
+                        taskName,
+                        taskBatchNo,
+                        "当前未配置可用的 RPC 或代币合约地址",
+                        "已跳过 ERC-20 充值扫描"
+                );
+                return progress;
+            }
 
-        long fromBlock = resolveFromBlock(progress.getLastScannedBlock());
-        long latestBlock = web3Gateway.getLatestBlockNumber();
-        if (latestBlock < fromBlock) {
-            log.info("当前暂无可扫描区块，fromBlock={}, latestBlock={}", fromBlock, latestBlock);
-            return progress;
-        }
+            long fromBlock = resolveFromBlock(progress.getLastScannedBlock());
+            long latestBlock = web3Gateway.getLatestBlockNumber();
+            if (latestBlock < fromBlock) {
+                log.info("当前暂无可扫描区块，fromBlock={}, latestBlock={}", fromBlock, latestBlock);
+                taskAuditLogAppService.recordSkipped(
+                        taskName,
+                        taskBatchNo,
+                        "当前暂无可扫描区块",
+                        "本轮充值扫描没有新增区块窗口"
+                );
+                return progress;
+            }
 
-        long toBlock = Math.min(latestBlock, fromBlock + walletWeb3Properties.resolvedScanStep() - 1L);
-        int detectedCount = depositCandidateAppService.detectAndStore(
-                walletDefaultsProperties.chain(),
-                walletDefaultsProperties.tokenSymbol(),
-                walletWeb3Properties.resolvedTokenDecimals(),
-                web3Gateway.getErc20TransferLogs(walletWeb3Properties.depositTokenContract(), fromBlock, toBlock)
-        );
-        int creditedCount = depositSettlementAppService.refreshConfirmationsAndCredit(
-                walletDefaultsProperties.chain(),
-                walletDefaultsProperties.tokenSymbol(),
-                latestBlock,
-                walletWeb3Properties.resolvedConfirmationsThreshold()
-        );
-        log.info("完成一轮 ERC-20 充值扫描，chain={}, fromBlock={}, toBlock={}, detectedCount={}, creditedCount={}",
-                walletDefaultsProperties.chain(), fromBlock, toBlock, detectedCount, creditedCount);
-        return chainScanProgressAppService.updateProgress(
-                walletDefaultsProperties.chain(),
-                ChainScanProgressAppService.ERC20_DEPOSIT_SCAN_TASK,
-                toBlock
-        );
+            long toBlock = Math.min(latestBlock, fromBlock + walletWeb3Properties.resolvedScanStep() - 1L);
+            int detectedCount = depositCandidateAppService.detectAndStore(
+                    walletDefaultsProperties.chain(),
+                    walletDefaultsProperties.tokenSymbol(),
+                    walletWeb3Properties.resolvedTokenDecimals(),
+                    web3Gateway.getErc20TransferLogs(walletWeb3Properties.depositTokenContract(), fromBlock, toBlock)
+            );
+            int creditedCount = depositSettlementAppService.refreshConfirmationsAndCredit(
+                    walletDefaultsProperties.chain(),
+                    walletDefaultsProperties.tokenSymbol(),
+                    latestBlock,
+                    walletWeb3Properties.resolvedConfirmationsThreshold()
+            );
+            ChainScanProgressResponse updatedProgress = chainScanProgressAppService.updateProgress(
+                    walletDefaultsProperties.chain(),
+                    taskName,
+                    toBlock
+            );
+            log.info("完成一轮 ERC-20 充值扫描，chain={}, fromBlock={}, toBlock={}, detectedCount={}, creditedCount={}",
+                    walletDefaultsProperties.chain(), fromBlock, toBlock, detectedCount, creditedCount);
+            taskAuditLogAppService.recordSuccess(
+                    taskName,
+                    taskBatchNo,
+                    detectedCount,
+                    creditedCount,
+                    0,
+                    0,
+                    buildMetricSnapshot(fromBlock, toBlock, latestBlock, detectedCount, creditedCount),
+                    "已完成一轮 ERC-20 充值扫描"
+            );
+            return updatedProgress;
+        } catch (RuntimeException ex) {
+            taskAuditLogAppService.recordFailure(
+                    taskName,
+                    taskBatchNo,
+                    0,
+                    0,
+                    0,
+                    1,
+                    "",
+                    resolveFailureReason(ex),
+                    "ERC-20 充值扫描执行失败"
+            );
+            throw ex;
+        }
     }
 
     /**
@@ -102,5 +143,36 @@ public class DepositScanTask {
             return walletWeb3Properties.resolvedScanStartBlock();
         }
         return lastScannedBlock + 1L;
+    }
+
+    /**
+     * 构建充值扫描指标快照。
+     *
+     * @param fromBlock 本轮起始区块
+     * @param toBlock 本轮结束区块
+     * @param latestBlock 当前最新区块
+     * @param detectedCount 识别到的候选充值数量
+     * @param creditedCount 正式入账数量
+     * @return 指标快照文本
+     */
+    private String buildMetricSnapshot(long fromBlock, long toBlock, long latestBlock,
+                                       int detectedCount, int creditedCount) {
+        return "fromBlock=" + fromBlock
+                + ",toBlock=" + toBlock
+                + ",latestBlock=" + latestBlock
+                + ",detectedCount=" + detectedCount
+                + ",creditedCount=" + creditedCount;
+    }
+
+    /**
+     * 解析任务失败原因。
+     *
+     * @param ex 异常对象
+     * @return 失败原因
+     */
+    private String resolveFailureReason(RuntimeException ex) {
+        return ex.getMessage() == null || ex.getMessage().isBlank()
+                ? ex.getClass().getSimpleName()
+                : ex.getMessage();
     }
 }
