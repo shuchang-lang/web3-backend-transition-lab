@@ -2,8 +2,8 @@
 
 ## 当前进度
 
-- 当前已推进到：`Day29`
-- 当前阶段主题：`GitHub 展示与面试表达强化`
+- 当前已推进到：`Day30`
+- 当前阶段主题：`项目收口与简历表达第一版`
 
 ## 当前已完成
 
@@ -19,6 +19,7 @@
 - Day27：自动对账任务第一版
 - Day28：审计日志与监控指标第一版
 - Day29：GitHub 展示与面试表达强化
+- Day30：项目收口与简历表达第一版
 
 ## 当前主工程状态
 
@@ -53,28 +54,32 @@
   - GitHub 展示阅读路径
   - 面试亮点与高频问答
   - 模块设计与接口清单收口
+  - 简历项目经历材料与岗位定制表达
 
-## Day29 本次落地
+## Day30 本次落地
 
-- 新增项目介绍文档：`design/project-pitch.md`
-- 重写面试亮点文档：`design/interview-highlights.md`
-- 重写模块设计文档：`design/wallet-backend-module-design.md`
-- 重写接口清单文档：`design/wallet-backend-api-list.md`
-- 新增 Day29 文档：`docs/day29-github-showcase-and-interview-story.md`
-- 根 README 已补强：
-  - 一句话项目介绍
-  - 更清晰的阅读顺序
-  - GitHub / 面试入口
-- 主项目 README 已补强：
-  - 一句话怎么讲
-  - 最适合讲的 5 个亮点
-  - 建议演示顺序
+- 新增简历项目经历材料：`design/resume-project-story.md`
+- 同步项目表达文档：
+  - `design/project-pitch.md`
+  - `design/interview-highlights.md`
+- 新增 Day30 文档：`docs/day30-project-wrap-up-and-resume-story.md`
+- 根 README 已同步到 Day30：
+  - 项目当前进度
+  - 简历材料入口
+  - 下一阶段方向
+- 主项目 README 已同步到 Day30：
+  - 当前项目阶段
+  - 简历写法入口
+  - 下一阶段方向
+- roadmap 已同步：
+  - `roadmap/day22-day30-plan.md`
+  - `roadmap/next-steps.md`
 
 ## 下一步
 
-- 进入：`Day30`
-- 主题：`项目收口与简历表达第一版`
+- 进入：`第三阶段：让项目更像真实资金后端`
+- 优先主题：`更完整的任务治理表达与多实例广播锁升级方案`
 - 目标：
-  - 把项目背景、职责、技术栈和关键难点整理成简历友好的表达
-  - 形成更完整的项目介绍与可直接复述的项目经历
-  - 让 README、design 文档和简历表述进一步统一
+  - 把当前单 JVM 维度的任务治理继续补成更接近生产的话语体系
+  - 为多实例场景下的广播锁升级留出更明确的设计方案
+  - 继续完善监控、告警、费率、风控与运维治理说明

@@ -1,6 +1,6 @@
 # Day22-Day30 Plan
 
-当前项目已经推进到 `Day29`。
+当前项目已经推进到 `Day30`。
 
 到这里为止，主项目已经完成：
 
@@ -16,6 +16,7 @@
 - 自动对账任务与结果落库第一版
 - 审计日志与监控指标第一版
 - GitHub 展示与面试表达强化
+- 项目收口与简历表达第一版
 
 Day22-Day30 这一段的目标，不再是单纯堆“新接口”，而是把项目往下面三个方向推进：
 
@@ -251,6 +252,19 @@ Day22-Day30 仍然聚焦：
 1. 梳理项目背景、职责、技术栈、关键难点
 2. 总结资金一致性、链上异常治理、任务治理、可观测性等亮点
 3. 形成一版可直接复述的项目介绍材料
+
+当前状态：
+
+- 已完成
+
+本次关键产出：
+
+- `design/resume-project-story.md`
+- `docs/day30-project-wrap-up-and-resume-story.md`
+- `README.md`
+- `practice/web3-wallet-backend-demo/README.md`
+- `docs/current-status.md`
+- `docs/day-handoff.md`
 
 ---
 
